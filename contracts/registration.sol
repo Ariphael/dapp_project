@@ -1,4 +1,4 @@
-pragma solidity ^0.5.2;
+pragma solidity ^0.8.20;
 
 contract registration {
   address private electionContractAddress;
@@ -10,11 +10,12 @@ contract registration {
     _;
   }
 
-  constructor() public {
+  constructor(address electionContractAddressParam) {
+    electionContractAddress = electionContractAddressParam;
     registrationPhaseFlag = true;
   }
 
-  function register() external {
+  function register() onlyElectionContractCanCall external {
     require(registrationPhaseFlag == true, "Operation denied. Election is not in registration phase.");
     require(!isRegistered[msg.sender], "Operation denied. You are already registered in this election.");
 
@@ -23,7 +24,11 @@ contract registration {
     isRegistered[msg.sender] = true;
   }
 
-  function endRegistrationPhase() public onlyElectionContractCanCall {
+  function isParticipantRegistered(address participantAddress) onlyElectionContractCanCall public view returns (bool) {
+    return isRegistered[participantAddress];
+  }
+
+  function endRegistrationPhase() onlyElectionContractCanCall public  {
     registrationPhaseFlag = false;
   }
 }
