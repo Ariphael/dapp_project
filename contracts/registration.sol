@@ -16,6 +16,7 @@ contract registration {
   }
 
   function register() onlyElectionContractCanCall external {
+    require(!isContract(msg.sender), "Operation denied. Only externally owned accounts can register in this election.");
     require(registrationPhaseFlag == true, "Operation denied. Election is not in registration phase.");
     require(!isRegistered[msg.sender], "Operation denied. You are already registered in this election.");
 
@@ -30,5 +31,13 @@ contract registration {
 
   function endRegistrationPhase() onlyElectionContractCanCall public  {
     registrationPhaseFlag = false;
+  }
+
+  function isContract(address account) private view returns (bool) {
+    uint32 size;
+    assembly {
+      size := extcodesize(account)
+    }
+    return size > 0;
   }
 }
