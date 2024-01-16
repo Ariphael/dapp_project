@@ -32,14 +32,24 @@ contract GovernanceNFT {
   function ownerOf(uint tokenId) external view returns (address owner) {
     return _ownerOf[tokenId];
   }
-   
+
   function transferFrom(address from, address to, uint tokenId) onlyElectionContractCanCall public {
     require(msg.sender != _ownerOf[tokenId], "Operation denied. Caller is not authorised to transfer from's tokens.");
     require(from == _ownerOf[tokenId], "Operation denied. From is not the owner of token.");
     require(to != address(0), "transfer to zero address");  
     _balanceOf[from]--;
     _balanceOf[to]++;
-    _ownerOf[tokenId] = to;  
+    _ownerOf[tokenId] = to;
     emit Transfer(from, to, tokenId);
   }
+
+  function mint(address to, uint tokenId) onlyElectionContractCanCall internal {
+    require(to != address(0), "Operation denied. Mint to zero address not allowed.");
+    require(_ownerOf[tokenId] == address(0), "Operation denied. Token already minted.");
+
+    _balanceOf[to]++;
+    _ownerOf[tokenId] = to;
+
+    emit Transfer(address(0), to, tokenId);
+  } 
 }
