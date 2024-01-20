@@ -1,5 +1,8 @@
-pragma solidity ^0.5.2;
+// SPDX-License-Identifier: MIT 
+pragma solidity ^0.8.20;
 pragma experimental ABIEncoderV2;
+import "./candidate.sol";
+
 
 contract secondSC  
 {
@@ -9,17 +12,8 @@ contract secondSC
   mapping(address => bool) isCandidate; 
   mapping(address => int) numberofVotes;
   Candidate[] public candidates;
-
-  struct Candidate 
-  {
-    int id;
-    string firstName;
-    string lastName;
-    address candidateAddress;
-  }
-
   
-  constructor(Candidate[] memory _candidates) public 
+  constructor(Candidate[] memory _candidates)
   {
     electionContractAddress = msg.sender;
     votingPhaseFlag = true;
