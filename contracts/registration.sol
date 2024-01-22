@@ -5,6 +5,12 @@ contract registration {
   mapping(address => bool) isRegistered;
   bool private registrationPhaseFlag;
 
+  /// @dev This emits when a new participant is registered in the election.
+  event Register(address newParticipant);
+
+  /// @dev This emits when the registration phase of the election ends.
+  event EndRegistrationPhase();
+
   modifier onlyElectionContractCanCall() {
     require(msg.sender == electionContractAddress);
     _;
@@ -23,6 +29,7 @@ contract registration {
     // Identity verification...
 
     isRegistered[msg.sender] = true;
+    emit Register(msg.sender);
   }
 
   function isParticipantRegistered(address participantAddress) onlyElectionContractCanCall public view returns (bool) {
@@ -31,6 +38,7 @@ contract registration {
 
   function endRegistrationPhase() onlyElectionContractCanCall public  {
     registrationPhaseFlag = false;
+    emit EndRegistrationPhase();
   }
 
   function isContract(address account) private view returns (bool) {
