@@ -2,18 +2,22 @@
 pragma solidity ^0.8.20;
 
 contract Nomination {
+  enum NominationParticipantStatus { Nominee, Candidate }
+  
   uint private constant MINIMUM_REQUIRED_ENDORSEMENTS = 5;
 
   mapping(address => uint) nomineeEndorsements;
-  mapping(address => Candidate) candidates;
+  mapping(address => NominationParticipant) nominationParticipantInfo;
   address private electionContractAddress;
+  int private nextId;
 
   /// @dev This emits when a new nominee is created.
   event Nominate(address nominee);
 
   /// @dev This emits when a nominee turns into a candidate which occurs when a sufficient number of endorsements
-  /// is accrued.
-  event Candidate(address nominee);
+  /// is accrued. 
+  /// Note: Nominee endorsements for the address nominee resets to zero and a candidate cannot be nominated.
+  event NewCandidate(address nominee);
 
   /// @dev This emits when a nominee receives an endorsement.
   event Endorsement(address nominee, uint newEndorsementCount);
@@ -23,39 +27,50 @@ contract Nomination {
     _;
   }
 
-  struct Candidate {
+  constructor(address electionContractAddressParam) {
+    electionContractAddress = electionContractAddressParam;
+    nextId = 1;
+  }
+
+  struct NominationParticipant {
     int id;
     string firstName;
     string lastName;
-    address candidateAddress;
+    NominationParticipantStatus status;
   }
 
-  function nominate(address newNominee) onlyElectionContractCanCall external {
+  function nominate(address newNominee, string calldata firstName, string calldata lastName) external onlyElectionContractCanCall {
     require(!isContract(newNominee), "Operation denied. A contract account cannot be nominated as candidate");
-    require(isZero(candidates[newNominee]), "Operation denied. Account is already a candidate");
-    require(nomineeEndorsements[newNominee] == 0, "Operation denied. Account is already a nominee.");
+    require(nominationParticipantInfo[newNominee].id == 0, "Operation denied. Account is already a candidate or nominee");
 
     nomineeEndorsements[newNominee] = 1;
+    nominationParticipantInfo[newNominee] =
+      NominationParticipant(nextId, firstName, lastName, NominationParticipantStatus.Nominee);
+    nextId++;
     emit Nominate(newNominee);
   }
 
-  function endorse(address from, address nominee) onlyElectionContractCanCall external {
-    require(from != address(0), "Operation denied. From cannot be the address address.");
+  function endorse(address from, address nominee) external onlyElectionContractCanCall {
+    require(from != address(0), "Operation denied. From cannot be the address zero.");
     require(nomineeEndorsements[from] != 0, "Operation denied. \"nominee\" is not a nominee.");
 
     nomineeEndorsements[nominee]++;
     emit Endorsement(nominee, nomineeEndorsements[nominee]);
 
     if (nomineeEndorsements[nominee] >= MINIMUM_REQUIRED_ENDORSEMENTS) {
-      // TODO
+      nomineeEndorsements[nominee] = 0;
+      nominationParticipantInfo[nominee].status = NominationParticipantStatus.Candidate;
+      emit NewCandidate(nominee);
     }
   }
 
-  function isZero(Candidate memory candidate) private pure returns (bool) {
-    return candidate.id == 0 
-      && keccak256(bytes(candidate.firstName)) == keccak256(bytes(""))
-      && keccak256(bytes(candidate.lastName)) == keccak256(bytes("")) 
-      && candidate.candidateAddress == address(0);
+  function getCandidateInfo(address candidate) external view returns (NominationParticipant memory) {
+    require(
+      nominationParticipantInfo[candidate].id != 0 
+        && nominationParticipantInfo[candidate].status == NominationParticipantStatus.Candidate, 
+      "Operation denied. Account is not a candidate."
+    );
+    return nominationParticipantInfo[candidate];
   }
 
   function isContract(address account) private view returns (bool) {
