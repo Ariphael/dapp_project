@@ -3,7 +3,7 @@ pragma solidity ^0.8.20;
 
 contract Nomination {
   enum NominationParticipantStatus { Nominee, Candidate }
-  
+
   uint private constant MINIMUM_REQUIRED_ENDORSEMENTS = 5;
 
   mapping(address => uint) nomineeEndorsements;
