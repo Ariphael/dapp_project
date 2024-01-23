@@ -9,7 +9,8 @@ contract Voting
   bool private votingPhaseFlag;
   address private electionContractAddress;
   mapping(address => bool) hasVoted;
-  mapping(address => bool) isCandidate; 
+  mapping(address => bool) isCandidate;
+
   mapping(address => Candidate) candidatesMAP;
   address[] public candidateAddresses;
   int[2] public topVotes;
@@ -60,25 +61,24 @@ constructor(Candidate[] memory _candidates)
   {
     return candidatesMAP[candidate].votesFirstTurn;
   }
-  function getTwoWinning() external view returns (address[2] memory) 
+  function getTwoWinning() external
   {
     require(!votingPhaseFlag, "Voting phase is still ongoing.");
-    address[2] memory winners;
-    int[2] memory maxVotes;
-    for (uint i = 0; i < candidateAddresses.length; i++) {
+
+    for (uint i = 0; i < candidateAddresses.length; i++) 
+    {
         address candidateAddress = candidateAddresses[i];
         int votes = candidatesMAP[candidateAddress].votesFirstTurn;
-        if (votes > maxVotes[0]) {
-            maxVotes[1] = maxVotes[0];
-            winners[1] = winners[0];
-            maxVotes[0] = votes;
-            winners[0] = candidateAddress;
-        } else if (votes > maxVotes[1]) {
-            maxVotes[1] = votes;
-            winners[1] = candidateAddress;
+        if (votes > topVotes[0]) {
+            topVotes[1] = topVotes[0];
+            topCandidates[1] = topCandidates[0];
+            topVotes[0] = votes;
+            topCandidates[0] = candidateAddress;
+        } else if (votes > topVotes[1]) {
+            topVotes[1] = votes;
+            topCandidates[1] = candidateAddress;
         }
     }
-    return winners;
   }
 
   function getCandidate(address candidate) public view returns (int, string memory, string memory, address) 
