@@ -4,7 +4,7 @@ pragma experimental ABIEncoderV2;
 import "./candidate.sol";
 
 
-contract secondSC  
+contract Voting  
 {
   bool private votingPhaseFlag;
   address private electionContractAddress;
