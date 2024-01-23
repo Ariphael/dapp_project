@@ -7,42 +7,47 @@ pragma solidity ^0.8.20;
 pragma experimental ABIEncoderV2;
 
 contract ElectionFacade {
-    secondSC private election;
-    registration private registrationContract;
+
+    address public AddresssTosecondSC;
+    address public AddressToregistration;
+    // secondSC private election;
+    // registration private registrationContract;
     address private creatoraddress;
-    constructor() {
-        registrationContract = new registration(address(this));
+    constructor(address _AddresssTosecondSC, address _AddressToregistration) {
+        //registrationContract = new registration(address(this));
         creatoraddress = msg.sender;
+        AddresssTosecondSC = _AddresssTosecondSC;
+        AddressToregistration = _AddressToregistration;
     }
 
     function register() external {
-        registrationContract.register();
+        registration(AddressToregistration).register();
     }
 
     function isParticipantRegistered(address participantAddress) public view returns (bool) {
-        return registrationContract.isParticipantRegistered(participantAddress);
+        return registration(AddressToregistration).isParticipantRegistered(participantAddress);
     }
 
     function vote(address candidate) external {
-        election.vote(candidate);
+        secondSC(AddresssTosecondSC).vote(candidate);
     }
 
     function getVotes(address candidate) public view returns (int) {
-        return election.getVotes(candidate);
+        return secondSC(AddresssTosecondSC).getVotes(candidate);
     }
 
     function getCandidate(address candidate) public view returns (int, string memory, string memory, address) {
-        return election.getCandidate(candidate);
+        return secondSC(AddresssTosecondSC).getCandidate(candidate);
     }
 
     function endRegistrationPhase() public {
         require(creatoraddress == msg.sender, "Only creator can end registration phase");
         
-        registrationContract.endRegistrationPhase();
-        Candidate[] memory candidates = new Candidate[](2);
-        candidates[0] = Candidate(1, "John", "Doe", address(0x123));
-        candidates[1] = Candidate(2, "Jane", "Smith", address(0x456));
-        election = new secondSC(candidates);
+        registration(AddressToregistration).endRegistrationPhase();
+        // Candidate[] memory candidates = new Candidate[](2);
+        // candidates[0] = Candidate(1, "John", "Doe", address(0x123), 0, 0);
+        // candidates[1] = Candidate(2, "Jane", "Smith", address(0x456), 0, 0);
+        // election = new secondSC(candidates);
     }
 
 }
