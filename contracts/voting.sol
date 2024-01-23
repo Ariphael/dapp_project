@@ -79,6 +79,47 @@ constructor(Candidate[] memory _candidates)
             topCandidates[1] = candidateAddress;
         }
     }
+
+    checkNeedOfSecondTurn();
+
+  }
+
+  //topCandidate[0] is the candidate adress with most votes
+  //topCandidates[1] is the second candidate adress with most vots
+  //topVotes[0] is the biggest amount of votes (votes of topCandidates[0])(int)
+  //topVotes[1] is the second biggest amount of votes (votes of topCandidates[1])(int)
+
+  function checkNeedOfSecondTurn() external returns (bool) {
+    int totalVotes = getTotalVotes();
+
+    uint256 majorityThreshold = (totalVotes * 50) / 100;
+    if (topVotes[0]>= majorityThreshold) {
+      //first candidate won in the current round
+      winner = topCandidates[0];
+
+      return false;
+    }
+    //SECOND TURN
+    else {
+      return true;
+    }
+  }
+
+
+  function getTotalVotes() returns (int){
+    uint256 totalVotes = 0;
+    //loop the candidate list to get total
+    for (uint256 i = 0; i < candidateAddresses.length; i++) {
+
+        address candidate = candidateAddresses[i];
+
+        int votes = getVotes(candidate);
+
+        totalVotes += uint256(votes);
+    }
+
+    return totalVotes;
+
   }
 
   function getCandidate(address candidate) public view returns (int, string memory, string memory, address) 
