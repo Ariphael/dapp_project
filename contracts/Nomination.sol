@@ -7,6 +7,7 @@ contract Nomination {
   uint private constant MINIMUM_REQUIRED_ENDORSEMENTS = 5;
 
   mapping(address => uint) nomineeEndorsements;
+  mapping(address => mapping(address => bool)) participantEndorsementRecord;
   mapping(address => NominationParticipant) nominationParticipantInfo;
   address private electionContractAddress;
   int private nextId;
@@ -53,8 +54,10 @@ contract Nomination {
   function endorse(address from, address nominee) external onlyElectionContractCanCall {
     require(from != address(0), "Operation denied. From cannot be the address zero.");
     require(nomineeEndorsements[from] != 0, "Operation denied. \"nominee\" is not a nominee.");
+    require(participantEndorsementRecord[from][nominee] == false, "Operation denied. From cannot endorse the same nominee more than once.");
 
     nomineeEndorsements[nominee]++;
+    participantEndorsementRecord[from][nominee] = true;
     emit Endorsement(nominee, nomineeEndorsements[nominee]);
 
     if (nomineeEndorsements[nominee] >= MINIMUM_REQUIRED_ENDORSEMENTS) {
