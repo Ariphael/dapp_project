@@ -15,6 +15,7 @@ contract Voting
   address[] public candidateAddresses;
   int[2] public topVotes;
   address[2] public topCandidates;
+  address public winner;
   //mapping(address => int) numberofVotes;
   //Candidate[] public candidates;
   
@@ -51,6 +52,16 @@ constructor(Candidate[] memory _candidates)
     candidatesMAP[candidate].votesFirstTurn = candidatesMAP[candidate].votesFirstTurn + 1;
   }
 
+  function voteSecondTurn(address candidate) external
+  {
+    require(votingPhaseFlag == true, "Operation denied. Election is not in voting phase.");
+    require(!hasVoted[msg.sender], "Operation denied. You are already voted in this election.");
+    hasVoted[msg.sender] = true;
+    require((candidate == topCandidate[0]) || (candidate == topCandidate[1]), "Operation denied. Candidate is not in the second turn.");
+
+    candidatesMAP[candidate].votesSecondTurn = candidatesMAP[candidate].votesSecondTurn + 1;
+  }
+
   function endvoting() external
   {
     require(electionContractAddress == msg.sender, "Only creator can end voting phase");
@@ -61,6 +72,12 @@ constructor(Candidate[] memory _candidates)
   {
     return candidatesMAP[candidate].votesFirstTurn;
   }
+
+  function getVotesSecondTurn(address candidate) public view returns (int) 
+  {
+    return candidatesMAP[candidate].votesSecondTurn;
+  }
+
   function getTwoWinning() external
   {
     require(!votingPhaseFlag, "Voting phase is still ongoing.");
@@ -100,13 +117,32 @@ constructor(Candidate[] memory _candidates)
     }
     //SECOND TURN
     else {
+      votingPhaseFlag = true;
+
+      //allow voters to vote again
+      for (uint i = 0; i < candidateAddresses.length; i++) {
+          hasVoted[candidateAddresses[i]] = false;
+      }
+
       return true;
     }
   }
 
-  function secondTurn(){
-    
+  function determineSecondTurnWinner() external view  {
+
+      address candidate1 = topCandidates[0];
+      address candidate2 = topCandidates[1];
+      int votesCandidate1 = getVotesSecondTurn(candidate1);
+      int votesCandidate2 = getVotesSecondTurn(candidate2);
+
+      if (votesCandidate1 > votesCandidate2) {
+          winner = candidate1;
+      } else {
+          winner = candidate2;
+      } 
+      //i put an else and not an elseif because idk what to do for a tie
   }
+
 
 
   function getTotalVotes() returns (int){

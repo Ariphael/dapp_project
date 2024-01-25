@@ -34,6 +34,14 @@ contract ElectionFacade {
         return Voting(AddresssToVoting).getVotes(candidate);
     }
 
+    function voteSecondTurn(address candidate) external {
+        Voting(AddresssToVoting).voteSecondTurn(candidate);
+    }
+
+    function getVotesSecondTurn(address candidate) public view returns (int) {
+        return Voting(AddresssToVoting).getVotesSecondTurn(candidate);
+    }
+
     function getCandidate(address candidate) public view returns (int, string memory, string memory, address) {
         return Voting(AddresssToVoting).getCandidate(candidate);
     }
