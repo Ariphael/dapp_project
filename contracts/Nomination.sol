@@ -67,6 +67,11 @@ contract Nomination {
     }
   }
 
+  function isCandidate(address candidate) external view returns (bool) {
+    return nominationParticipantInfo[candidate].id != 0 
+      && nominationParticipantInfo[candidate].status == NominationParticipantStatus.Candidate;
+  }
+
   function getCandidateInfo(address candidate) external view returns (NominationParticipant memory) {
     require(
       nominationParticipantInfo[candidate].id != 0 
