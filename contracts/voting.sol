@@ -3,7 +3,6 @@ pragma solidity ^0.8.20;
 pragma experimental ABIEncoderV2;
 import "./candidate.sol";
 
-
 contract Voting  
 {
   bool private votingPhaseFlag;
@@ -143,12 +142,10 @@ constructor(Candidate[] memory _candidates)
       //i put an else and not an elseif because idk what to do for a tie
   }
 
-
-
   function getTotalVotes() returns (int){
     uint256 totalVotes = 0;
     //loop the candidate list to get total
-    for (uint256 i = 0; i < candidateAddresses.length; i++) {
+    for (uint i = 0; i < candidateAddresses.length; i++) {
 
         address candidate = candidateAddresses[i];
 

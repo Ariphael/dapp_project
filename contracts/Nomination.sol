@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: UNLICENSED 
 pragma solidity ^0.8.20;
 
+import "./candidate.sol";
+
 contract Nomination {
   enum NominationParticipantStatus { Nominee, Candidate }
 
@@ -9,6 +11,7 @@ contract Nomination {
   mapping(address => uint) nomineeEndorsements;
   mapping(address => mapping(address => bool)) participantEndorsementRecord;
   mapping(address => NominationParticipant) nominationParticipantInfo;
+  address[] private candidateAddresses;
   address private electionContractAddress;
   int private nextId;
 
@@ -63,6 +66,7 @@ contract Nomination {
     if (nomineeEndorsements[nominee] >= MINIMUM_REQUIRED_ENDORSEMENTS) {
       nomineeEndorsements[nominee] = 0;
       nominationParticipantInfo[nominee].status = NominationParticipantStatus.Candidate;
+      candidateAddresses.push(nominee);
       emit NewCandidate(nominee);
     }
   }
@@ -79,6 +83,23 @@ contract Nomination {
       "Operation denied. Account is not a candidate."
     );
     return nominationParticipantInfo[candidate];
+  }
+
+  function getCandidateList() external view returns (Candidate[] memory) {
+    Candidate[] storage candidate = new Candidate[](candidateAddresses.length);
+
+    for (uint i = 0; i < candidateAddresses.length; i++) {
+      candidate.push(Candidate({
+        id: nominationParticipantInfo[candidateAddresses[i]].id,
+        firstName: nominationParticipantInfo[candidateAddresses[i]].firstName,
+        lastName: nominationParticipantInfo[candidateAddresses[i]].lastName,
+        candidateAddress: candidateAddresses[i],
+        votesFirstTurn: 0,
+        votesSecondTurn: 0
+      }));
+    }
+
+    return candidate;
   }
 
   function isContract(address account) private view returns (bool) {
