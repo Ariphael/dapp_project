@@ -4,6 +4,7 @@ pragma solidity ^0.8.20;
 contract registration {
   address private electionContractAddress;
   mapping(address => bool) isRegistered;
+  uint private participantCount;
   bool private registrationPhaseFlag;
 
   /// @dev This emits when a new participant is registered in the election.
@@ -20,6 +21,7 @@ contract registration {
   constructor(address electionContractAddressParam) {
     electionContractAddress = electionContractAddressParam;
     registrationPhaseFlag = true;
+    participantCount = 0;
   }
 
   function register() onlyElectionContractCanCall external {
@@ -30,6 +32,7 @@ contract registration {
     // Identity verification...
 
     isRegistered[msg.sender] = true;
+    participantCount++;
     emit Register(msg.sender);
   }
 
@@ -37,9 +40,13 @@ contract registration {
     return isRegistered[participantAddress];
   }
 
-  function endRegistrationPhase() onlyElectionContractCanCall public  {
+  function endRegistrationPhase() onlyElectionContractCanCall public {
     registrationPhaseFlag = false;
     emit EndRegistrationPhase();
+  }
+
+  function getParticipantCount() external view onlyElectionContractCanCall returns (bool) {
+    return participantCount;
   }
 
   function isContract(address account) private view returns (bool) {

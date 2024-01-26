@@ -5,6 +5,8 @@ import "./candidate.sol";
 
 contract Voting  
 {
+  uint private constant VOTING_PHASE_PARTICIPATION_THRESHOLD_PERCENTAGE = 80;
+
   bool private votingPhaseFlag;
   address private electionContractAddress;
   mapping(address => bool) hasVoted;
@@ -97,7 +99,6 @@ constructor(Candidate[] memory _candidates)
     }
     checkNeedOfSecondTurn();
   }
-
   
   //topCandidate[0] is the candidate adress with most votes
   //topCandidates[1] is the second candidate adress with most vots
@@ -142,19 +143,10 @@ constructor(Candidate[] memory _candidates)
       //i put an else and not an elseif because idk what to do for a tie
   }
 
-<<<<<<< HEAD
-  function getTotalVotes() returns (int){
+  function getTotalVotes() public returns (int){
     uint256 totalVotes = 0;
     //loop the candidate list to get total
     for (uint i = 0; i < candidateAddresses.length; i++) {
-=======
-
-
-  function getTotalVotes() public view returns (uint64){
-    uint64 totalVotes = 0;
-    //loop the candidate list to get total
-    for (uint64 i = 0; i < candidateAddresses.length; i++) {
->>>>>>> bd8684b931a608bf88423fb4390b7b297158bd34
 
         address candidate = candidateAddresses[i];
 

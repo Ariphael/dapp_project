@@ -14,8 +14,6 @@ contract Nomination {
   address[] private candidateAddresses;
   address private electionContractAddress;
   int private nextId;
-  address[] public allCandidates;
-  mapping(address => bool) public isCandidate;
 
   /// @dev This emits when a new nominee is created.
   event Nominate(address nominee);
@@ -63,25 +61,15 @@ contract Nomination {
     require(nomineeEndorsements[from] != 0, "Operation denied. \"nominee\" is not a nominee.");
     require(participantEndorsementRecord[from][nominee] == false, "Operation denied. From cannot endorse the same nominee more than once.");
 
-    /// TODO Check if participant can endorse
     nomineeEndorsements[nominee]++;
     participantEndorsementRecord[from][nominee] = true;
     emit Endorsement(nominee, nomineeEndorsements[nominee]);
 
-    // Check if nominated
-    if (isCandidate[nominee] == false) 
-      {
-      if (nomineeEndorsements[nominee] >= MINIMUM_REQUIRED_ENDORSEMENTS){
+    if (nomineeEndorsements[nominee] >= MINIMUM_REQUIRED_ENDORSEMENTS) {
       nomineeEndorsements[nominee] = 0;
       nominationParticipantInfo[nominee].status = NominationParticipantStatus.Candidate;
-<<<<<<< HEAD
       candidateAddresses.push(nominee);
-=======
-      allCandidates.push(nominee);
-      isCandidate[nominee] = true;
->>>>>>> bd8684b931a608bf88423fb4390b7b297158bd34
       emit NewCandidate(nominee);
-      }
     }
   }
 
@@ -98,25 +86,22 @@ contract Nomination {
     );
     return nominationParticipantInfo[candidate];
   }
-  function getAllCandidatesAdresses() external view returns (address[] memory) {
-    return allCandidates;
-  }
 
   function getCandidateList() external view returns (Candidate[] memory) {
-    Candidate[] storage candidate = new Candidate[](candidateAddresses.length);
+    Candidate[] memory candidates = new Candidate[](candidateAddresses.length);
 
     for (uint i = 0; i < candidateAddresses.length; i++) {
-      candidate.push(Candidate({
+      candidates[i] = Candidate({
         id: nominationParticipantInfo[candidateAddresses[i]].id,
         firstName: nominationParticipantInfo[candidateAddresses[i]].firstName,
         lastName: nominationParticipantInfo[candidateAddresses[i]].lastName,
         candidateAddress: candidateAddresses[i],
         votesFirstTurn: 0,
         votesSecondTurn: 0
-      }));
+      });
     }
 
-    return candidate;
+    return candidates;
   }
 
   function isContract(address account) private view returns (bool) {
