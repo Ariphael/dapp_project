@@ -27,6 +27,7 @@ contract Nomination {
 
   modifier onlyElectionContractCanCall() {
     require(msg.sender == electionContractAddress);
+    /// # todo: change to election contract only
     _;
   }
 
@@ -35,7 +36,8 @@ contract Nomination {
     nextId = 1;
   }
 
-  struct NominationParticipant {
+  struct NominationParticipant 
+  {
     int id;
     string firstName;
     string lastName;
@@ -58,6 +60,7 @@ contract Nomination {
     require(nomineeEndorsements[from] != 0, "Operation denied. \"nominee\" is not a nominee.");
     require(participantEndorsementRecord[from][nominee] == false, "Operation denied. From cannot endorse the same nominee more than once.");
 
+    /// TODO Check if participant can endorse
     nomineeEndorsements[nominee]++;
     participantEndorsementRecord[from][nominee] = true;
     emit Endorsement(nominee, nomineeEndorsements[nominee]);
