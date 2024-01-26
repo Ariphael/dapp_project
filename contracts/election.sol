@@ -8,102 +8,138 @@ import "./candidate.sol";
 import "./Nomination.sol";
 
 contract ElectionFacade {
-    enum ElectionPhase { Registration, Nomination, VotingPhaseOne, VotingPhaseTwo, Results }
+    enum ElectionPhase { PreElection, VotingPhaseOne, VotingPhaseTwo, PostElection }
 
-    address public addressToVoting;
+    address public addressToVotingContract;
     address public addressToRegistration;
-    address private addressToNomination;
+    address public addressToNomination;
     address private creatorAddress;
+    ElectionPhase public currentPhase;
+
+    modifier haveVotingPower() 
+    {
+        require(isParticipantRegistered(msg.sender) == true, "You are not registered");
+        _;
+    } 
+    
+    modifier onlyInPhase(Phase _phase) 
+    {
+        require(currentPhase == _phase, "Function cannot be called in this phase");
+        _;
+    }
+
+    modifier onlyPreElection() {
+        _;
+        onlyInPhase(Phase.pre_election);
+    }
+
+    modifier onlyFirstTurn() {
+        _;
+        onlyInPhase(Phase.first_turn);
+    }
+
+    modifier onlySecondTurn() {
+        _;
+        onlyInPhase(Phase.second_turn);
+    }
+
+    modifier onlyPostElection() {
+        _;
+        onlyInPhase(Phase.post_election);
+    }
 
     ElectionPhase private phase;
 
-    constructor(address _addresssToVoting, address _addressToRegistration, address _addressToNomination) {
+    constructor(address _addressToVotingContract, address _addressToRegistration, address _addressToNomination) {
         creatorAddress = msg.sender;
         addressToVoting = _addressToVoting;
         addressToRegistration = _addressToRegistration;
         addressToNomination = addressToNomination;
-        phase = ElectionPhase.Registration;
+        phase = ElectionPhase.PreElection;
     }
 
-    function register() external {
-        require(phase == ElectionPhase.Registration, "Operation denied. Election is not in the registration phase.");
-        registration(AddressToregistration).register();
+    // Registration
+    function register() onlyPreElection external {
+        registration(addressToRegistration).register();
     }
 
-    function nominate(string calldata firstName, string calldata lastName) external {
-        require(phase == ElectionPhase.Nomination, "Operation denied. Election is not in the nomination phase");
-        require(isParticipantRegistered(address(msg.sender)), "Operation denied. Caller is not a participant in the election.");
-
-        Nomination(addressToNomination).nominate(msg.sender, firstName, lastName);
+    // Nominations
+    function nominate(address newNominee, string calldata firstName, string calldata lastName) haveVotingPower onlyPreElection external {
+        registration(addressToNomination).nominate(newNominee, firstName, lastName);
     }
 
-    function endorse(address nominee) external {
-        require(phase == ElectionPhase.Nomination, "Operation denied. Election is not in the nomination phase");
-        require(isParticipantRegistered(address(msg.sender)), "Operation denied. Caller is not a participant in the election.");
-
-        Nomination(addressToNomination).endorse(msg.sender, nominee);
+    function endorse(address from, address nominee) haveVotingPower onlyPreElection external {
+        registration(addressToNomination).endorse(from, nominee);
     }
 
-    function vote(address candidate) external {
-        require(
-            phase == ElectionPhase.VotingPhaseOne || ElectionPhase.VotingPhaseTwo, 
-            "Operation denied. Election is not in a voting phase."
-        );
-        require(isCandidate(candidate), "Operation denied. Not a candidate.");
+    // Functions pertaining to phase transition
 
-        Voting(addressToVoting).vote(candidate);
-    }
-
-    function voteSecondTurn(address candidate) external {
-        require(
-            phase == ElectionPhase.VotingPhaseOne || ElectionPhase.VotingPhaseTwo, 
-            "Operation denied. Election is not in a voting phase."
-        );
-        require(isCandidate(candidate), "Operation denied. Not a candidate.");
-
-        Voting(addressToVoting).voteSecondTurn(candidate);
-    }
-
-    // function getVotes(address candidate) public view returns (int) {
-    //     return Voting(AddresssToVoting).getVotes(candidate);
+    // function endNominationPhase() public {
+    //     require(creatorAddress == msg.sender, "Only creator can end nomination phase");
+    //     phase = ElectionPhase.VotingPhaseOne;
     // }
 
-    // function getVotesSecondTurn(address candidate) public view returns (int) {
-    //     return Voting(AddresssToVoting).getVotesSecondTurn(candidate);
+    // function endVotingPhaseOne() public {
+    //     require(creatorAddress == msg.sender, "Only creator can end voting phase one");
+    //     phase = ElectionPhase.VotingPhaseTwo;
     // }
 
-    // function getCandidate(address candidate) public view returns (int, string memory, string memory, address) {
-    //     return Voting(AddresssToVoting).getCandidate(candidate);
+    // function endElection() public {
+    //     require(creatorAddress == msg.sender, "Only creator can end election");
+    //     phase = ElectionPhase.Results;
     // }
 
-    function endRegistrationPhase() public {
-        require(creatorAddress == msg.sender, "Only creator can end registration phase");
-        registration(AddressToRegistration).endRegistrationPhase();
-        phase = ElectionPhase.Nomination;
+    function StartFirstTurn() internal
+    {
+        require(creatorAddress == msg.sender, "Only creator can change phase");
+        registration(addressToRegistration).endRegistrationPhase();
+        currentPhase = Phase.first_turn;
     }
 
-    function endNominationPhase() public {
-        require(creatorAddress == msg.sender, "Only creator can end nomination phase");
-        phase = ElectionPhase.VotingPhaseOne;
+    function StartSecondTurn() internal
+    {
+        require(creatorAddress == msg.sender, "Only creator can change phase");
+        /// TODO add end of first turn logic
+        currentPhase = Phase.second_turn;
+    }
+    function endElection() internal
+    {
+        require(creatorAddress == msg.sender, "Only creator can change phase");
+        voting(addressToVotingContract).endvoting();
     }
 
-    function endVotingPhaseOne() public {
-        require(creatorAddress == msg.sender, "Only creator can end voting phase one");
-        phase = ElectionPhase.VotingPhaseTwo;
+    // Voting
+
+    function vote(address candidate) haveVotingPower onlyFirstTurn external 
+    {
+        if (currentPhase == Phase.first_turn)
+        {
+            voting(addressToVotingContract).vote(candidate);
+        }
+        else if (currentPhase == Phase.second_turn)
+        {
+            voting(addressToVotingContract).voteSecondTurn(candidate);
+        }
     }
 
-    function endElection() public {
-        require(creatorAddress == msg.sender, "Only creator can end election");
-        phase = ElectionPhase.Results;
-    }
+    // View functions
 
     // Participant registration and candidate state can be shown in the frontend using the emitted
     // events rather than calling these view functions
     function isParticipantRegistered(address participantAddress) private view returns (bool) {
-        return registration(AddressToRegistration).isParticipantRegistered(participantAddress);
+        return registration(addressToRegistration).isParticipantRegistered(participantAddress);
     }
 
     function isCandidate(address participantAddress) private view returns (bool) {
         return Nomination(addressToNomination).isCandidate(participantAddress);
+    }
+
+    function getCandidate(address candidate) public view returns (int, string memory, string memory, address) 
+    {
+        return Voting(addressToVotingContract).getCandidate(candidate);
+    }
+
+    function getVotes(address candidate) public view returns (int) {
+        return Voting(addressToVotingContract).getVotes(candidate);
     }
 }

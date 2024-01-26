@@ -14,6 +14,8 @@ contract Nomination {
   address[] private candidateAddresses;
   address private electionContractAddress;
   int private nextId;
+  address[] public allCandidates;
+  mapping(address => bool) public isCandidate;
 
   /// @dev This emits when a new nominee is created.
   event Nominate(address nominee);
@@ -28,6 +30,7 @@ contract Nomination {
 
   modifier onlyElectionContractCanCall() {
     require(msg.sender == electionContractAddress);
+    /// # todo: change to election contract only
     _;
   }
 
@@ -36,7 +39,8 @@ contract Nomination {
     nextId = 1;
   }
 
-  struct NominationParticipant {
+  struct NominationParticipant 
+  {
     int id;
     string firstName;
     string lastName;
@@ -59,15 +63,25 @@ contract Nomination {
     require(nomineeEndorsements[from] != 0, "Operation denied. \"nominee\" is not a nominee.");
     require(participantEndorsementRecord[from][nominee] == false, "Operation denied. From cannot endorse the same nominee more than once.");
 
+    /// TODO Check if participant can endorse
     nomineeEndorsements[nominee]++;
     participantEndorsementRecord[from][nominee] = true;
     emit Endorsement(nominee, nomineeEndorsements[nominee]);
 
-    if (nomineeEndorsements[nominee] >= MINIMUM_REQUIRED_ENDORSEMENTS) {
+    // Check if nominated
+    if (isCandidate[nominee] == false) 
+      {
+      if (nomineeEndorsements[nominee] >= MINIMUM_REQUIRED_ENDORSEMENTS){
       nomineeEndorsements[nominee] = 0;
       nominationParticipantInfo[nominee].status = NominationParticipantStatus.Candidate;
+<<<<<<< HEAD
       candidateAddresses.push(nominee);
+=======
+      allCandidates.push(nominee);
+      isCandidate[nominee] = true;
+>>>>>>> bd8684b931a608bf88423fb4390b7b297158bd34
       emit NewCandidate(nominee);
+      }
     }
   }
 
@@ -83,6 +97,9 @@ contract Nomination {
       "Operation denied. Account is not a candidate."
     );
     return nominationParticipantInfo[candidate];
+  }
+  function getAllCandidatesAdresses() external view returns (address[] memory) {
+    return allCandidates;
   }
 
   function getCandidateList() external view returns (Candidate[] memory) {

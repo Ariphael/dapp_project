@@ -12,7 +12,7 @@ contract Voting
 
   mapping(address => Candidate) candidatesMAP;
   address[] public candidateAddresses;
-  int[2] public topVotes;
+  uint64[2] public topVotes;
   address[2] public topCandidates;
   address public winner;
   //mapping(address => int) numberofVotes;
@@ -56,7 +56,7 @@ constructor(Candidate[] memory _candidates)
     require(votingPhaseFlag == true, "Operation denied. Election is not in voting phase.");
     require(!hasVoted[msg.sender], "Operation denied. You are already voted in this election.");
     hasVoted[msg.sender] = true;
-    require((candidate == topCandidate[0]) || (candidate == topCandidate[1]), "Operation denied. Candidate is not in the second turn.");
+    require((candidate == topCandidates[0]) || (candidate == topCandidates[1]), "Operation denied. Candidate is not in the second turn.");
 
     candidatesMAP[candidate].votesSecondTurn = candidatesMAP[candidate].votesSecondTurn + 1;
   }
@@ -67,12 +67,12 @@ constructor(Candidate[] memory _candidates)
     votingPhaseFlag = false;
   }
 
-  function getVotes(address candidate) public view returns (int) 
+  function getVotes(address candidate) public view returns (uint64) 
   {
     return candidatesMAP[candidate].votesFirstTurn;
   }
 
-  function getVotesSecondTurn(address candidate) public view returns (int) 
+  function getVotesSecondTurn(address candidate) public view returns (uint64) 
   {
     return candidatesMAP[candidate].votesSecondTurn;
   }
@@ -84,7 +84,7 @@ constructor(Candidate[] memory _candidates)
     for (uint i = 0; i < candidateAddresses.length; i++) 
     {
         address candidateAddress = candidateAddresses[i];
-        int votes = candidatesMAP[candidateAddress].votesFirstTurn;
+        uint64 votes = candidatesMAP[candidateAddress].votesFirstTurn;
         if (votes > topVotes[0]) {
             topVotes[1] = topVotes[0];
             topCandidates[1] = topCandidates[0];
@@ -104,10 +104,10 @@ constructor(Candidate[] memory _candidates)
   //topVotes[0] is the biggest amount of votes (votes of topCandidates[0])(int)
   //topVotes[1] is the second biggest amount of votes (votes of topCandidates[1])(int)
 
-  function checkNeedOfSecondTurn() external returns (bool) {
-    int totalVotes = getTotalVotes();
+  function checkNeedOfSecondTurn() internal returns (bool) {
+    uint64 totalVotes = getTotalVotes();
 
-    uint256 majorityThreshold = (totalVotes * 50) / 100;
+    uint64 majorityThreshold = (totalVotes * 50);
     if (topVotes[0]>= majorityThreshold) {
       //first candidate won in the current round
       winner = topCandidates[0];
@@ -127,12 +127,12 @@ constructor(Candidate[] memory _candidates)
     }
   }
 
-  function determineSecondTurnWinner() external view  {
+  function determineSecondTurnWinner() external {
 
       address candidate1 = topCandidates[0];
       address candidate2 = topCandidates[1];
-      int votesCandidate1 = getVotesSecondTurn(candidate1);
-      int votesCandidate2 = getVotesSecondTurn(candidate2);
+      uint64 votesCandidate1 = getVotesSecondTurn(candidate1);
+      uint64 votesCandidate2 = getVotesSecondTurn(candidate2);
 
       if (votesCandidate1 > votesCandidate2) {
           winner = candidate1;
@@ -142,16 +142,25 @@ constructor(Candidate[] memory _candidates)
       //i put an else and not an elseif because idk what to do for a tie
   }
 
+<<<<<<< HEAD
   function getTotalVotes() returns (int){
     uint256 totalVotes = 0;
     //loop the candidate list to get total
     for (uint i = 0; i < candidateAddresses.length; i++) {
+=======
+
+
+  function getTotalVotes() public view returns (uint64){
+    uint64 totalVotes = 0;
+    //loop the candidate list to get total
+    for (uint64 i = 0; i < candidateAddresses.length; i++) {
+>>>>>>> bd8684b931a608bf88423fb4390b7b297158bd34
 
         address candidate = candidateAddresses[i];
 
-        int votes = getVotes(candidate);
+        uint64 votes = getVotes(candidate);
 
-        totalVotes += uint256(votes);
+        totalVotes += uint64(votes);
     }
 
     return totalVotes;
