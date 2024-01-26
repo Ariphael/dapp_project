@@ -11,6 +11,8 @@ contract Nomination {
   mapping(address => NominationParticipant) nominationParticipantInfo;
   address private electionContractAddress;
   int private nextId;
+  address[] public allCandidates;
+  mapping(address => bool) public isCandidate;
 
   /// @dev This emits when a new nominee is created.
   event Nominate(address nominee);
@@ -60,10 +62,16 @@ contract Nomination {
     participantEndorsementRecord[from][nominee] = true;
     emit Endorsement(nominee, nomineeEndorsements[nominee]);
 
-    if (nomineeEndorsements[nominee] >= MINIMUM_REQUIRED_ENDORSEMENTS) {
+    // Check if nominated
+    if (isCandidate[nominee] == false) 
+      {
+      if (nomineeEndorsements[nominee] >= MINIMUM_REQUIRED_ENDORSEMENTS){
       nomineeEndorsements[nominee] = 0;
       nominationParticipantInfo[nominee].status = NominationParticipantStatus.Candidate;
+      allCandidates.push(nominee);
+      isCandidate[nominee] = true;
       emit NewCandidate(nominee);
+      }
     }
   }
 
@@ -74,6 +82,9 @@ contract Nomination {
       "Operation denied. Account is not a candidate."
     );
     return nominationParticipantInfo[candidate];
+  }
+  function getAllCandidatesAdresses() external view returns (address[] memory) {
+    return allCandidates;
   }
 
   function isContract(address account) private view returns (bool) {
