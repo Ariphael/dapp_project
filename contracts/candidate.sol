@@ -8,6 +8,6 @@ struct Candidate
     string firstName;
     string lastName;
     address candidateAddress;
-    int votesFirstTurn;
-    int votesSecondTurn;
+    uint64 votesFirstTurn;
+    uint64 votesSecondTurn;
 }
