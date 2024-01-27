@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED 
 pragma solidity ^0.8.20;
 
-import "./candidate.sol";
+import { Candidate } from "./ElectionLibrary.sol";
 
 contract Nomination {
   enum NominationParticipantStatus { Nominee, Candidate }

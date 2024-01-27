@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT 
 pragma solidity ^0.8.20;
 
-import "./candidate.sol";
+import { Candidate } from "./ElectionLibrary.sol";
 import "./election.sol";
 
 contract Results {
@@ -34,18 +34,18 @@ contract Results {
     postVotingPhaseResults = candidateVotingResults;
   }
 
-  function getResult(bool isPhaseTwo) external onlyElectionContractCanCall returns (Candidate[], ElectionFacade.ElectionPhase nextPhase) {
+  function getResult(bool isPhaseTwo) external onlyElectionContractCanCall returns (Candidate[] memory, ElectionFacade.ElectionPhase nextPhase) {
     require(postVotingPhaseResults.length > 1, "Operation denied. Number of candidates in election must exceed 1.");
 
     return !isPhaseTwo ? getPhaseOneResult() : getPhaseTwoResult();
   }
 
-  function getVotingResults() external returns (Candidate[]) {
+  function getVotingResults() external returns (Candidate[] memory) {
     return postVotingPhaseResults;
   }
 
-  function getPhaseOneResult() private returns (Candidate[], ElectionFacade.ElectionPhase nextPhase) {
-    Candidate[] results = new Candidate[](2);
+  function getPhaseOneResult() private returns (Candidate[] memory, ElectionFacade.ElectionPhase nextPhase) {
+    Candidate[] memory results = new Candidate[](2);
 
     for (uint i = 0; i < postVotingPhaseResults.length; i++) {
       if (postVotingPhaseResults[i].votesFirstTurn >= results[0].votesFirstTurn) {
@@ -55,7 +55,7 @@ contract Results {
     }
 
     if (results[0].votesFirstTurn == results[1].votesFirstTurn) {
-      Candidate[] resultTie = new Candidate[](1);
+      Candidate[] memory resultTie = new Candidate[](1);
       // random choice mechanism...
       resultTie[0] = results[0];
       emit ElectionTerminatingVotingPhaseOneResult(resultTie[0]);
@@ -68,10 +68,10 @@ contract Results {
     return (results, ElectionFacade.ElectionPhase.VotingPhaseTwo);
   }
 
-  function getPhaseTwoResult() private returns (Candidate[], ElectionFacade.ElectionPhase nextPhase) {
+  function getPhaseTwoResult() private returns (Candidate[] memory, ElectionFacade.ElectionPhase nextPhase) {
     require(postVotingPhaseResults.length == 2, "Operation denied. Only two candidates allowed in voting phase two");
 
-    Candidate[] results = new Candidate[](1);
+    Candidate[] memory results = new Candidate[](1);
     if (postVotingPhaseResults[0].votesSecondTurn > postVotingPhaseResults[1].votesSecondTurn) {
       results[0] = postVotingPhaseResults[0];
     } else if (postVotingPhaseResults[0].votesSecondTurn < postVotingPhaseResults[1].votesSecondTurn) {
@@ -84,7 +84,7 @@ contract Results {
 
     postVotingPhaseResults = results;
 
-    emit VotingPhaseTwoResult(results[0], ElectionFacade.ElectionPhase.PostElection);
-    return results;
+    emit VotingPhaseTwoResult(results[0]);
+    return (results, ElectionFacade.ElectionPhase.PostElection);
   }
 }

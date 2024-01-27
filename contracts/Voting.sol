@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT 
 pragma solidity ^0.8.20;
 
-import "./candidate.sol";
+import { Candidate } from "./ElectionLibrary.sol";
 import "./election.sol";
 
 contract Voting {
@@ -37,9 +37,9 @@ contract Voting {
     require(hasVoted[voter] == false, "Operation denied. Participant has already cast a vote.");
 
     if (isPhaseOne)
-      candidateMap[candidate].votingFirstTurn++;
+      candidateMap[candidate].votesFirstTurn++;
     else
-      candidateMap[candidate].votingSecondTurn++;
+      candidateMap[candidate].votesSecondTurn++;
 
     hasVoted[voter] = true;
 

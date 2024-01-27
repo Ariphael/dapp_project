@@ -2,10 +2,11 @@
 pragma solidity ^0.8.20;
 pragma experimental ABIEncoderV2;
 
+import { Candidate } from "./ElectionLibrary.sol";
+
 import "./Voting.sol";
 import "./Registration.sol";
 import "./Results.sol";
-import "./candidate.sol";
 import "./Nomination.sol";
 
 contract ElectionFacade {
@@ -102,22 +103,22 @@ contract ElectionFacade {
         );
 
         bool hasExceededVotingPhaseParticipationThreshold =
-            votingContract.vote(msg.sender, candidate, currentPhase == ElectionPhase.PhaseOne);
+            votingContract.vote(msg.sender, candidate, currentPhase == ElectionPhase.VotingPhaseOne);
 
         if (hasExceededVotingPhaseParticipationThreshold) {
             Candidate[] memory candidateInfo = Voting(votingContract).getCandidateInfo();
-            resultsContract.setCandidateVotingResults(candidateInfo);
+            resultsContract.setPostVotingPhaseResults(candidateInfo);
             (,currentPhase) = resultsContract.getResult(currentPhase == ElectionPhase.VotingPhaseTwo);
             if (currentPhase != ElectionPhase.PostElection)
                 votingContract.setPostNominationCandidateInfo(
-                    registrationContract.getVotingResults()
+                    resultsContract.getVotingResults()
                 );
         }
     }
 
     // Results
-    function getResult() external view onlyPostElection returns (Candidate[] memory) {
-        return registrationContract.getVotingResults();
+    function getResult() external onlyPostElection returns (Candidate[] memory) {
+        return resultsContract.getVotingResults();
     }
 
     // View functions

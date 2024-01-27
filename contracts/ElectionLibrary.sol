@@ -2,8 +2,7 @@
 pragma solidity ^0.8.20;
 
 // Define the Candidate struct in a separate file
-struct Candidate 
-{
+struct Candidate {
     int id;
     string firstName;
     string lastName;
