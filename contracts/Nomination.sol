@@ -21,14 +21,13 @@ contract Nomination {
   /// @dev This emits when a nominee turns into a candidate which occurs when a sufficient number of endorsements
   /// is accrued. 
   /// Note: Nominee endorsements for the address nominee resets to zero and a candidate cannot be nominated.
-  event NewCandidate(address nominee);
+  event NewCandidate(address nominee, string firstName, string lastName);
 
   /// @dev This emits when a nominee receives an endorsement.
   event Endorsement(address nominee, uint newEndorsementCount);
 
   modifier onlyElectionContractCanCall() {
     require(msg.sender == electionContractAddress);
-    /// # todo: change to election contract only
     _;
   }
 
@@ -69,16 +68,20 @@ contract Nomination {
       nomineeEndorsements[nominee] = 0;
       nominationParticipantInfo[nominee].status = NominationParticipantStatus.Candidate;
       candidateAddresses.push(nominee);
-      emit NewCandidate(nominee);
+      emit NewCandidate(
+        nominee, 
+        nominationParticipantInfo[nominee].firstName, 
+        nominationParticipantInfo[nominee].lastName
+      );
     }
   }
 
-  function isCandidate(address candidate) external view returns (bool) {
+  function isCandidate(address candidate) external view onlyElectionContractCanCall returns (bool) {
     return nominationParticipantInfo[candidate].id != 0 
       && nominationParticipantInfo[candidate].status == NominationParticipantStatus.Candidate;
   }
 
-  function getCandidateInfo(address candidate) external view returns (NominationParticipant memory) {
+  function getCandidateInfo(address candidate) external view onlyElectionContractCanCall returns (NominationParticipant memory) {
     require(
       nominationParticipantInfo[candidate].id != 0 
         && nominationParticipantInfo[candidate].status == NominationParticipantStatus.Candidate, 
@@ -87,7 +90,7 @@ contract Nomination {
     return nominationParticipantInfo[candidate];
   }
 
-  function getCandidateList() external view returns (Candidate[] memory) {
+  function getCandidateList() external view onlyElectionContractCanCall returns (Candidate[] memory) {
     Candidate[] memory candidates = new Candidate[](candidateAddresses.length);
 
     for (uint i = 0; i < candidateAddresses.length; i++) {

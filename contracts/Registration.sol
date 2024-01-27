@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT 
 pragma solidity ^0.8.20;
 
-contract registration {
+contract Registration {
   address private electionContractAddress;
   mapping(address => bool) isRegistered;
   uint private participantCount;
@@ -45,7 +45,7 @@ contract registration {
     emit EndRegistrationPhase();
   }
 
-  function getParticipantCount() external view onlyElectionContractCanCall returns (bool) {
+  function getParticipantCount() onlyElectionContractCanCall external view returns (uint) {
     return participantCount;
   }
 

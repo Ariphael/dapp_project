@@ -5,7 +5,7 @@ import "./candidate.sol";
 import "./election.sol";
 
 contract Results {
-  Candidate[] private votingResults;
+  Candidate[] private postVotingPhaseResults;
   address private electionContractAddress;
 
   /// @dev This emits when the results of voting phase one are the two top voted candidates and neither of these
@@ -30,23 +30,27 @@ contract Results {
     electionContractAddress = _electionContractAddress;
   }
 
-  function setCandidateVotingResults(Candidate[] memory candidateVotingResults) external onlyElectionContractCanCall {
-    votingResults = candidateVotingResults;
+  function setPostVotingPhaseResults(Candidate[] memory candidateVotingResults) external onlyElectionContractCanCall {
+    postVotingPhaseResults = candidateVotingResults;
   }
 
-  function getResult(bool isPhaseTwo) external onlyElectionContractCanCall returns (Candidate[], ElectionPhase nextPhase) {
-    require(votingResults.length > 1, "Operation denied. Number of candidates in election must exceed 1.");
+  function getResult(bool isPhaseTwo) external onlyElectionContractCanCall returns (Candidate[], ElectionFacade.ElectionPhase nextPhase) {
+    require(postVotingPhaseResults.length > 1, "Operation denied. Number of candidates in election must exceed 1.");
 
     return !isPhaseTwo ? getPhaseOneResult() : getPhaseTwoResult();
   }
 
-  function getPhaseOneResult() private returns (Candidate[], ElectionPhase nextPhase) {
+  function getVotingResults() external returns (Candidate[]) {
+    return postVotingPhaseResults;
+  }
+
+  function getPhaseOneResult() private returns (Candidate[], ElectionFacade.ElectionPhase nextPhase) {
     Candidate[] results = new Candidate[](2);
 
-    for (uint i = 0; i < votingResults.length; i++) {
-      if (votingResults[i].votesFirstTurn >= results[0].votesFirstTurn) {
+    for (uint i = 0; i < postVotingPhaseResults.length; i++) {
+      if (postVotingPhaseResults[i].votesFirstTurn >= results[0].votesFirstTurn) {
         results[1] = results[0];
-        results[0] = votingResults[i];
+        results[0] = postVotingPhaseResults[i];
       }
     }
 
@@ -55,28 +59,32 @@ contract Results {
       // random choice mechanism...
       resultTie[0] = results[0];
       emit ElectionTerminatingVotingPhaseOneResult(resultTie[0]);
-      return (resultTie, ElectionFacade.ElectionPhase.VotingPhaseOne);
+      return (resultTie, ElectionFacade.ElectionPhase.PostElection);
     }
+
+    postVotingPhaseResults = results;
 
     emit VotingPhaseOneResult(results[0], results[1]);
     return (results, ElectionFacade.ElectionPhase.VotingPhaseTwo);
   }
 
-  function getPhaseTwoResult() private returns (Candidate[]) {
-    require(votingResults.length == 2, "Operation denied. Only two candidates allowed in voting phase two");
+  function getPhaseTwoResult() private returns (Candidate[], ElectionFacade.ElectionPhase nextPhase) {
+    require(postVotingPhaseResults.length == 2, "Operation denied. Only two candidates allowed in voting phase two");
 
     Candidate[] results = new Candidate[](1);
-    if (votingResults[0].votesSecondTurn > votingResults[1].votesSecondTurn) {
-      results[0] = votingResults[0];
-    } else if (votingResults[0].votesSecondTurn < votingResults[1].votesSecondTurn) {
-      results[0] = votingResults[1];
+    if (postVotingPhaseResults[0].votesSecondTurn > postVotingPhaseResults[1].votesSecondTurn) {
+      results[0] = postVotingPhaseResults[0];
+    } else if (postVotingPhaseResults[0].votesSecondTurn < postVotingPhaseResults[1].votesSecondTurn) {
+      results[0] = postVotingPhaseResults[1];
     } else {
       // random choice mechanism...
       // let's say candidate votingResults[0] is selected
-      results[0] = votingResults[0];
+      results[0] = postVotingPhaseResults[0];
     }
 
-    emit VotingPhaseTwoResult(results[0]);
+    postVotingPhaseResults = results;
+
+    emit VotingPhaseTwoResult(results[0], ElectionFacade.ElectionPhase.PostElection);
     return results;
   }
 }
