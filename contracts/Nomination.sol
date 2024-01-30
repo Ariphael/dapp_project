@@ -27,7 +27,7 @@ contract Nomination {
   event Endorsement(address nominee, uint newEndorsementCount);
 
   modifier onlyElectionContractCanCall() {
-    require(msg.sender == electionContractAddress);
+    require(msg.sender == electionContractAddress, "Operation denied. Only election smart contract can call this function.");
     _;
   }
 
@@ -51,13 +51,14 @@ contract Nomination {
     nomineeEndorsements[newNominee] = 1;
     nominationParticipantInfo[newNominee] =
       NominationParticipant(nextId, firstName, lastName, NominationParticipantStatus.Nominee);
+    participantEndorsementRecord[newNominee][newNominee] = true;
     nextId++;
     emit Nominate(newNominee);
   }
 
   function endorse(address from, address nominee) external onlyElectionContractCanCall {
     require(from != address(0), "Operation denied. From cannot be the address zero.");
-    require(nomineeEndorsements[from] != 0, "Operation denied. \"nominee\" is not a nominee.");
+    require(nomineeEndorsements[nominee] != 0, "Operation denied. \"nominee\" is not a nominee.");
     require(participantEndorsementRecord[from][nominee] == false, "Operation denied. From cannot endorse the same nominee more than once.");
 
     nomineeEndorsements[nominee]++;

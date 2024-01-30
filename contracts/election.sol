@@ -17,21 +17,25 @@ contract ElectionFacade {
     address private owner;
     ElectionPhase private currentPhase;
 
-    constructor(
-        address _votingContract, 
-        address _registrationContract, 
-        address _nominationContract 
-    ) {
+    /// @dev This emits when the owner of the contract declares that the pre-election 
+    /// (registration + nomination) phase has ended.
+    event EndPreElectionPhase();
+
+    constructor() {
         owner = msg.sender;
+        currentPhase = ElectionPhase.PreElection;
+    }
+
+    function setContractAddresses(address _votingContract, address _registrationContract, address _nominationContract) external {
+        require(msg.sender == owner, "Operation denied. You are not the owner.");
         votingContract = BigVoting(_votingContract);
         registrationContract = Registration(_registrationContract);
-        nominationContract = Nomination(_nominationContract);
-        currentPhase = ElectionPhase.PreElection;
+        nominationContract = Nomination(_nominationContract);        
     }
 
     // Registration
     function register() onlyPreElection external {
-        registrationContract.register();
+        registrationContract.register(msg.sender);
     }
 
     // Nominations
@@ -47,7 +51,15 @@ contract ElectionFacade {
 
     function endPreElectionPhase() external onlyPreElection {
         require(owner == msg.sender, "Only owner of contract can end the pre-election phase");
-        currentPhase = ElectionPhase.PreElection;
+
+        Candidate[] memory candidates = nominationContract.getCandidateList();
+        
+        require(candidates.length > 1, "There must be more than 1 candidate to end the pre-election phase.");
+
+        currentPhase = ElectionPhase.VotingPhaseOne;
+        votingContract.setPostRegistrationNumberOfParticipants(registrationContract.getParticipantCount());
+        votingContract.setPostNominationCandidateInfo(candidates);
+        emit EndPreElectionPhase();
     }
 
     // Voting
@@ -63,15 +75,14 @@ contract ElectionFacade {
 
         if (hasExceededVotingPhaseParticipationThreshold) 
         {
-            (,currentPhase) = votingContract.getResult(currentPhase == ElectionPhase.VotingPhaseTwo);
-            if (currentPhase != ElectionPhase.PostElection)
-                votingContract.setPostNominationCandidateInfo();
+            (, currentPhase) = votingContract.getResult(currentPhase == ElectionPhase.VotingPhaseTwo);
         }
     }
 
     // Results
-    function getResult() external view onlyPostElection returns (Candidate[10] memory) {
-        return votingContract.getCandidateInfo();
+    function getResult() external view onlyPostElection returns (Candidate memory) {
+        Candidate[10] memory votingContractCandidateInfo = votingContract.getCandidateInfo();
+        return votingContractCandidateInfo[0];
     }
 
     // View functions
@@ -89,7 +100,7 @@ contract ElectionFacade {
 
     // modifiers
 
-        modifier haveVotingPower() 
+    modifier haveVotingPower() 
     {
         require(isParticipantRegistered(msg.sender) == true, "Operation denied. EOA is not a registered participant.");
         _;
