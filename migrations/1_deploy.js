@@ -8,4 +8,11 @@ module.exports = async function(deployer) {
   await deployer.deploy(bigVotingArtifact, electionArtifact.address);
   await deployer.deploy(nominationArtifact, electionArtifact.address);
   await deployer.deploy(registrationArtifact, electionArtifact.address);
+
+  const electionContractInstance = await electionArtifact.deployed();
+  await electionContractInstance.setContractAddresses(
+    bigVotingArtifact.address, 
+    registrationArtifact.address, 
+    nominationArtifact.address
+  );
 }
