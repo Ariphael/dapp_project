@@ -1,5 +1,6 @@
 import Web3 from 'web3';
 import contractInfo from '../build/contracts/Nomination.json';
+import { addressList } from './addressList.json';
 
 const web3 = new Web3(window.ethereum);
 
@@ -20,9 +21,9 @@ export const endorse = async () => {
   const gasPrice = await web3.eth.getGasPrice();
 
 	await contract.methods.endorse(endorseeAccount, firstName, lastName).send({
-	from: account,
-	gas: 200000, //limit
-	gasPrice: gasPrice,
+		from: account,
+		gas: 200000, //limit
+		gasPrice: gasPrice,
 	});
 
 	

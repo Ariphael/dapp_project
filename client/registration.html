@@ -22,17 +22,17 @@
 <h2>Menu</h2>
 
 <div class="buttons">
-	<button type="button" id="RegisterBtn">Register</button>
+	<button type="button" id="RegisterBtn" onclick="register()">Register</button>
 	
 </div>
 
 <br>
 
-<script type="module" src="registration.js"></script>
+<!--<script type="module" src="registration.js"></script>-->
 
 <script type="module">
 	import { register } from "./registration.js";
-	document.getElementById('RegisterBtn').addEventListener('click', register);
+	window.register = register;
 </script>
 
 </body>
