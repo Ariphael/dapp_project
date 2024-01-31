@@ -1,0 +1,45 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Candidate Nomination</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<h1>Candidate Nomination</h1>
+
+<h2>Connected account</h2>
+
+<table>
+	<tr>
+		<td>Your Address</td>
+		<td><div id="pageAccountAddress"></div></td>
+	</tr>
+
+    <tr>
+		<td>Your Nominee</td>
+		<td><input type="text" id="NominateName"></td>
+	</tr>
+</table>
+
+<h2>Menu</h2>
+
+<div class="buttons">
+	<button type="button" id="NominateBtn">Nominate</button>
+	
+</div>
+
+<br>
+
+<script type="module" src="nomination.js"></script>
+
+<script type="module">
+	import { nominate } from "./nomination.js";
+	document.getElementById('NominateBtn').addEventListener('click', nominate);
+</script>
+
+</body>
+</html>
+

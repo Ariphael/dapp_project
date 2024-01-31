@@ -1,0 +1,20 @@
+{
+  "name": "client",
+  "version": "1.0.0",
+  "main": "registration.js",
+  "scripts": {
+    "registration": "parcel registration.html",
+    "election": "parcel election.html",
+    "nomination": "parcel nomination.html"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "parcel": "^2.11.0"
+  },
+  "dependencies": {
+    "web3": "^4.4.0"
+  },
+  "description": ""
+}

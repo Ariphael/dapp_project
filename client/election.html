@@ -1,0 +1,45 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Election</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<h1>Election</h1>
+
+<h2>Connected account</h2>
+
+<table>
+	<tr>
+		<td>Your Address</td>
+		<td><div id="pageAccountAddress"></div></td>
+	</tr>
+
+    <tr>
+		<td>Your Vote</td>
+		<td><input type="text" id="VoteName"></td>
+	</tr>
+</table>
+
+<h2>Menu</h2>
+
+<div class="buttons">
+	<button type="button" id="VoteBtn">Vote</button>
+	
+</div>
+
+<br>
+
+<script type="module" src="election.js"></script>
+
+<script type="module">
+	import { vote } from "./election.js";
+	document.getElementById('Election').addEventListener('click', vote);
+</script>
+
+</body>
+</html>
+

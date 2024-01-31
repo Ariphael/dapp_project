@@ -1,0 +1,40 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>Candidate Registration for Nomination</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+<h1>Candidate Registration for Nomination</h1>
+
+<h2>Connected account</h2>
+
+<table>
+	<tr>
+		<td>Address</td>
+		<td><div id="pageAccountAddress"></div></td>
+	</tr>
+</table>
+
+<h2>Menu</h2>
+
+<div class="buttons">
+	<button type="button" id="RegisterBtn">Register</button>
+	
+</div>
+
+<br>
+
+<script type="module" src="registration.js"></script>
+
+<script type="module">
+	import { register } from "./registration.js";
+	document.getElementById('RegisterBtn').addEventListener('click', register);
+</script>
+
+</body>
+</html>
+
