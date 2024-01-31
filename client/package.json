@@ -5,7 +5,8 @@
   "scripts": {
     "registration": "parcel registration.html",
     "election": "parcel election.html",
-    "nomination": "parcel nomination.html"
+    "nomination": "parcel nomination.html",
+    "endorsement": "parcel endorse.html"
   },
   "keywords": [],
   "author": "",

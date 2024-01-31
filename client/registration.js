@@ -1,5 +1,5 @@
 import Web3 from 'web3';
-import contractInfo from '../build/contracts/Registration.json';
+import contractInfo from '../build/contracts/ElectionFacade.json';
 
 const web3 = new Web3(window.ethereum);
 

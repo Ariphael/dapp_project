@@ -1,5 +1,5 @@
 import Web3 from 'web3';
-import contractInfo from '../build/contracts/Nomination.json';
+import contractInfo from '../build/contracts/ElectionFacade.json';
 
 const web3 = new Web3(window.ethereum);
 
@@ -12,28 +12,40 @@ export const nominate = async () => {
 	let accounts = await web3.eth.requestAccounts();
 	let account = accounts[0];
 
-	const nomineeName = document.getElementById('NominateName').innerText;
-	const [firstName, lastName] = nomineeName.split(' ');
+	const foundName = findNameByAddress(address);
 
-	const nomineeAccount = findNomineeAccount(firstName, lastName);
+	if (foundName){
+		firstName=foundName.firstName;
+		lastName=foundName.lastName;
 
-  //get the gas price
+		//get the gas price
   const gasPrice = await web3.eth.getGasPrice();
 
-  if (nomineeAccount) {
-	await contract.methods.nominate(nomineeAccount, firstName, lastName).send({
-    from: account,
-    gas: 200000, //limit
-    gasPrice: gasPrice,
-  	});
-   }
+	await contract.methods.nominate(firstName, lastName).send({
+	from: account,
+	gas: 200000, //limit
+	gasPrice: gasPrice,
+	});
+	}
+
+	else {
+		console.log("No nominee found with the given address.");
+	}
+
+  
+
 	
 	reload();
 }
 
-const findNomineeAccount = (firstName, lastName) => {
-	return addressList.find(nominee => nominee.firstName === firstName && nominee.lastName === lastName);
-  }
+const findNameByAddress = (address) => {
+    const nominee = addressList.find(nominee => nominee.address === address);
+    if (nominee) {
+        return { firstName: nominee.firstName, lastName: nominee.lastName };
+    } else {
+        return null; // or handle the case when no nominee is found with the given address
+    }
+};
 
 const reload = async () => {
 	let accounts = await web3.eth.requestAccounts();
